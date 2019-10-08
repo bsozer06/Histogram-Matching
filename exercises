@@ -1,0 +1,72 @@
+# -*- coding: utf-8 -*-
+"""
+Created on Sat Jun  8 01:11:32 2019
+
+@author: burhan
+"""
+import cv2
+import numpy as np
+import matplotlib.pyplot as plt
+
+
+""" Histogram Matching / Specification """
+
+img1 = cv2.imread(r"C:\Users\burhan\Desktop\AI\matlab_imdata/football.jpg", 0)
+img2 = cv2.imread(r"C:\Users\burhan\Desktop\AI\matlab_imdata/onion.png", 0)
+
+num_bins = 256
+img1_flat = img1.flatten()
+frequency1, bins1 = np.histogram(img1_flat, num_bins)
+num_bins = 256
+img2_flat = img2.flatten()
+frequency2, bins2 = np.histogram(img2_flat, num_bins)
+
+hist1 = np.array(frequency1)
+hist2 = np.array(frequency2)
+
+M = np.zeros((256))
+num_bins = 256
+
+b1= 0
+c1 = []
+for i in range(0, hist1.shape[0]):
+    b1 += hist1[i]
+    c1.append(b1)
+c2 = []
+b2= 0
+for j in range(0, hist2.shape[0]):
+    b2 += hist2[j]
+    c2.append(b2)
+
+cdf1 = c1 / b1 * (len(c1)-1)
+cdf2 = c2 / b2 * (len(c2)-1)
+
+cdf1_round = np.round(cdf1)
+cdf2_round = np.round(cdf2)
+
+
+img_new = np.copy(img1)
+
+map = []
+for i in range(0, 256):
+    for j in range(0,256):
+        if (cdf1_round[i] <= cdf2_round[j]):
+            map.append(j)
+            break
+map = np.array(map)
+img_new = map[img1]
+
+
+plt.subplot(221)
+plt.hist(img_new.flatten(), 256, [0,256])
+plt.subplot(222)
+plt.imshow(img_new, cmap='gray')
+plt.subplot(223)
+plt.imshow(img1, cmap='gray')
+#plt.hist(img1.flatten(), 256, [0,256])
+
+plt.subplot(224)
+plt.imshow(img2, cmap='gray')
+#plt.hist(img2.flatten(), 256, [0,256])
+
+plt.show()
